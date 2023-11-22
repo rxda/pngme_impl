@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 mod args;
 mod chunk;
 mod chunk_type;
