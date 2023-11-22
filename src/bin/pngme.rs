@@ -1,6 +1,3 @@
-
-
-
-fn main() -> self::Result<()> {
+fn main() -> pngme::Result<()> {
     todo!()
 }

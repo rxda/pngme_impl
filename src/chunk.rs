@@ -6,8 +6,8 @@ use crate::chunk_type::ChunkType;
 use crate::{Error, Result};
 
 pub const CASTAGNOLI: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
-
-struct Chunk {
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub struct Chunk {
     length: u32,
     chunk_type: ChunkType,
     chunk_data: Vec<u8>,
@@ -15,7 +15,7 @@ struct Chunk {
 }
 
 impl Chunk {
-    fn new(chunk_type: ChunkType, chunk_data: Vec<u8>) -> Self {
+    pub fn new(chunk_type: ChunkType, chunk_data: Vec<u8>) -> Self {
         let chunk_type_bytes = &chunk_type.bytes();
         let crc_content = [chunk_type_bytes.as_ref(), &chunk_data[..]];
         let crc_content = crc_content.concat();
@@ -27,22 +27,22 @@ impl Chunk {
             crc: CASTAGNOLI.checksum(crc_content),
         }
     }
-    fn length(&self) -> u32 {
+    pub fn length(&self) -> u32 {
         self.length
     }
-    fn chunk_type(&self) -> &ChunkType {
+    pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
-    fn data(&self) -> &[u8] {
+    pub fn data(&self) -> &[u8] {
         &self.chunk_data
     }
-    fn crc(&self) -> u32 {
+    pub fn crc(&self) -> u32 {
         self.crc
     }
-    fn data_as_string(&self) -> Result<String> {
+    pub fn data_as_string(&self) -> Result<String> {
         Ok(String::from_utf8(self.chunk_data.clone())?)
     }
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         self.length
             .to_be_bytes()
             .iter()
@@ -64,7 +64,7 @@ impl TryFrom<&[u8]> for Chunk {
 
         let chunk_type_bytes = &chunk_bytes[4..8];
         let chunk_type_bytes: [u8; 4] = chunk_type_bytes.try_into()?;
-
+        let chunk_type = ChunkType::try_from(chunk_type_bytes)?;
         let data = &chunk_bytes[8..(data_length + 8) as usize];
         let crc_bytes = &chunk_bytes[(data_length + 8) as usize..];
         let crc_bytes: [u8; 4] = crc_bytes.try_into()?;
@@ -81,7 +81,7 @@ impl TryFrom<&[u8]> for Chunk {
 
         Ok(Chunk {
             length: data_length,
-            chunk_type: ChunkType::try_from(chunk_type_bytes)?,
+            chunk_type: chunk_type,
             chunk_data: data.to_owned(),
             crc,
         })
