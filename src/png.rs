@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use crate::{chunk::Chunk, chunk_type::ChunkType, Error, Result};
 
-struct Png {
+pub struct Png {
     header: [u8; 8],
     chunks: Vec<Chunk>,
 }
@@ -10,16 +10,16 @@ struct Png {
 impl Png {
     const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
-    fn from_chunks(chunks: Vec<Chunk>) -> Png {
+    pub fn from_chunks(chunks: Vec<Chunk>) -> Png {
         Png {
             header: Self::STANDARD_HEADER,
             chunks,
         }
     }
-    fn append_chunk(&mut self, chunk: Chunk) {
+    pub fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk)
     }
-    fn remove_chunk(&mut self, chunk_type_str: &str) -> Result<Chunk> {
+    pub fn remove_chunk(&mut self, chunk_type_str: &str) -> Result<Chunk> {
         let chunk_type = ChunkType::from_str(&chunk_type_str)?;
         let removed_chunk = self.chunk_by_type(&chunk_type_str);
         match removed_chunk {
@@ -31,13 +31,13 @@ impl Png {
             None => Err("chunk type not found")?,
         }
     }
-    fn header(&self) -> &[u8; 8] {
+    pub fn header(&self) -> &[u8; 8] {
         &self.header
     }
-    fn chunks(&self) -> &[Chunk] {
+    pub fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
-    fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+    pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
         let chunk_type = match ChunkType::from_str(chunk_type) {
             Ok(ct) => ct,
             Err(_) => return None,
@@ -47,7 +47,7 @@ impl Png {
             .filter(|c| *c.chunk_type() == chunk_type)
             .last()
     }
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         let mut bytes: Vec<u8> = Vec::new();
         bytes.extend(self.header);
         for chunk in self.chunks() {
@@ -122,8 +122,6 @@ mod tests {
     }
 
     fn chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk> {
-        use std::str::FromStr;
-
         let chunk_type = ChunkType::from_str(chunk_type)?;
         let data: Vec<u8> = data.bytes().collect();
 
@@ -136,6 +134,14 @@ mod tests {
         let png = Png::from_chunks(chunks);
 
         assert_eq!(png.chunks().len(), 3);
+    }
+
+    #[test]
+    fn test_header() {
+        let header = Png::STANDARD_HEADER;
+        for i in header{
+            println!("{:x}", i);
+        }
     }
 
     #[test]

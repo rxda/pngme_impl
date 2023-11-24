@@ -1,3 +1,5 @@
-fn main() -> pngme::Result<()> {
-    todo!()
+use pngme::command::handle;
+
+fn main() {
+    handle().unwrap();
 }
